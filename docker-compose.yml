@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  # Agente Coraza SPOA (el WAF)
+  coraza_spoa:
+    build:
+      context: ./coraza-spoa-src
+      dockerfile: example/Dockerfile
+    volumes:
+      - ./coraza-spoa/config.yaml:/etc/coraza/config.yaml:ro
+      - ./coraza-spoa/coraza-rules:/etc/coraza/coraza-rules:ro
+    network_mode: "host"
+    restart: always
+    
+
+  # HAProxy (el Proxy Inverso/WAF)
+  haproxy:
+    image: haproxy:latest 
+    user: root
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/coraza.cfg:/usr/local/etc/haproxy/coraza.cfg:ro
+      - ./haproxy/ssl:/usr/local/etc/haproxy/ssl:ro 
+    command: ["haproxy", "-db", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+    depends_on:
+      - coraza_spoa 
+    restart: always
+    network_mode: host

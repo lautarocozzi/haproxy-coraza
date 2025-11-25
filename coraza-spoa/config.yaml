@@ -1,0 +1,27 @@
+# El servidor SPOA escucha en el puerto 9000 (0.0.0.0:9000 por defecto)
+bind: 0.0.0.0:9000
+log_level: info
+log_format: console
+default_application: sample_app
+
+applications:
+  - name: sample_app
+    log_level: info
+    log_file: /dev/stdout
+    log_format: console
+    response_check: false
+    transaction_ttl_ms: 60000
+    # Directivas de Coraza WAF (similar a modsecurity.conf)
+    directives: |
+      Include @coraza.conf-recommended
+      Include /etc/coraza/coraza-rules/crs-setup.conf
+      Include /etc/coraza/coraza-rules/rules/*.conf
+      
+      # Configuraciones WAF
+      SecRuleEngine On
+      SecRequestBodyAccess On
+      SecResponseBodyAccess On
+      SecAuditEngine RelevantOnly
+      SecAuditLogFormat JSON
+      
+
